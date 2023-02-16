@@ -1,0 +1,18 @@
+{
+  "name": "ts-ast",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">= 18"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "run": "node dist/parse.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^4.9.5"
+  }
+}
