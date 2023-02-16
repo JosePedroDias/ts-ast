@@ -2,7 +2,12 @@ import { readFileSync } from 'fs';
 
 import { SyntaxKind } from 'typescript';
 
-export type onNodeFn = (node: Node, file: string) => void;
+export type Context = {
+    uniqueErrors: Set<string>;
+    errorCount: number;
+};
+
+export type onNodeFn = (node: Node, file: string, context: Context) => void;
 
 export const syntaxKindLookup = new Map<number, string>();
 {

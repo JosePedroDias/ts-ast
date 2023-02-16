@@ -8,8 +8,9 @@ import {
 } from 'typescript';
 
 import chalk from 'chalk';
+import { Context } from '../aux';
 
-export function onNode(node: Node, file: string) {
+export function onNode(node: Node, file: string, context: Context) {
     if (node.kind === SyntaxKind.ImportDeclaration) {
         console.log(chalk.yellow(`import`));
 
@@ -20,7 +21,7 @@ export function onNode(node: Node, file: string) {
                 const node4 = node3 as NamedImports;
                 for (const el of node4.elements) {
                     if (el.kind === SyntaxKind.ImportSpecifier) {
-                        const el2 = el as ImportSpecifier
+                        const el2 = el as ImportSpecifier;
                         if (el2.propertyName) {
                             console.log(` - ${chalk.blueBright(el2.name.text)} as ${el2.propertyName.text}`);
                         } else {
