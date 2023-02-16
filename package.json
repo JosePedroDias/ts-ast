@@ -13,6 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/glob": "^8.0.1",
+    "chalk": "4.x",
+    "glob": "^8.1.0",
     "typescript": "^4.9.5"
   }
 }

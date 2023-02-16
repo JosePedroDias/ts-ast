@@ -1,57 +1,52 @@
-// https://satellytes.com/blog/post/typescript-ast-type-checker/
-// https://nabeelvalley.co.za/docs/javascript/typescript-ast/
-// https://www.typescriptlang.org/tsconfig
+import { promisify } from 'util';
 
-// https://ts-ast-viewer.com/#
-// https://astexplorer.net
+import { glob as _glob } from 'glob';
 
 import {
     Program,
     createProgram,
     forEachChild,
     Node,
-    SyntaxKind,
-    ImportDeclaration,
-    ImportClause,
-    NamedImports,
-    ImportSpecifier,
 } from 'typescript';
 
-const FILE_PATH = 'example.ts';
+import chalk from 'chalk';
 
-const files: string[] = [FILE_PATH]
-const program: Program = createProgram(files, {});
+import { onNode as importStatements } from './rules/importStatements';
+import { onNode as importStatementsWithoutDist } from './rules/importStatementsWithoutDist';
 
-const mySourceFile = program.getSourceFile(FILE_PATH);
+const glob = promisify(_glob);
 
-const syntaxKindLookup = new Map<number, string>();
-for (let [k, v] of Object.entries(SyntaxKind as Object)) {
-    syntaxKindLookup.set(v, k);
-}
+const args = Array.from(process.argv);
+args.shift();
+args.shift();
 
-mySourceFile && forEachChild(mySourceFile, (node: Node) => {
-    if (node.kind === SyntaxKind.ImportDeclaration) {
-        console.log(`import`);
+const cwd = args[0] || '.';
+console.log('cwd', cwd);
 
-        const importDecNode = node as ImportDeclaration;
-        const importClause: ImportClause = importDecNode.importClause as ImportClause;
-        importClause.forEachChild((node3: Node) => {
-            if (node3.kind === SyntaxKind.NamedImports) {
-                const node4 = node3 as NamedImports;
-                for (const el of node4.elements) {
-                    if (el.kind === SyntaxKind.ImportSpecifier) {
-                        const el2 = el as ImportSpecifier
-                        if (el2.propertyName) {
-                            console.log(`- ${el2.name.text} as ${el2.propertyName.text}`);
-                        } else {
-                            console.log(`- ${el2.name.text}`);
-                        }
-                    }
-                }
-            }
-        })
+glob(
+    '**/*.ts',
+    {
+        cwd,
+        ignore: [
+            'node_modules/**',
+            '**/*.d.ts'
+        ]
+    }).then(
+        (matches) => {
+            const fullPaths = matches.map(s => `${cwd}/${s}`);
+            processTypescriptFiles(fullPaths);
+        }
+);
 
-        const moduleSpecifier = (importDecNode.moduleSpecifier as any).text as string;
-        console.log(`from ${moduleSpecifier}`);
+function processTypescriptFiles(files: string[]) {
+    const program: Program = createProgram(files, {});
+
+    for (const file of files) {
+        console.log(chalk.bgBlueBright( chalk.black(`\n ${file} \n`) ));
+
+        const sourceFile = program.getSourceFile(file);
+
+        sourceFile && forEachChild(sourceFile, (node: Node) => importStatements(node, file));
+        // sourceFile && forEachChild(sourceFile, (node: Node) => importStatementsWithoutDist(node, file));
     }
-});
+}
