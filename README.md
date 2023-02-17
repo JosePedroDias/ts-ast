@@ -8,10 +8,12 @@ though I like the very few dependencies and the types I get using the typescript
 
 ```
 npm run build
-npm run run -- <root of the source code>
+npm run run-single -- <root of the source code of 1 project>
+npm run run-bulk -- <root project A> <root project B> ... <root project N>
 ```
 
-It will run the rules called in `parse.ts`'s `processTypescriptFiles()`.
+It will run the rules defined in `config.ts`.
+You can make use of the context object to compute stats and cluster errors
 
 Example output:
 

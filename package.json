@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "run": "node dist/parse.js"
+    "run-single": "node dist/index.js",
+    "run-bulk": "node dist/bulk.js"
   },
   "author": "",
   "license": "ISC",

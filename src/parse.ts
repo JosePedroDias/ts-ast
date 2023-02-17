@@ -11,49 +11,35 @@ import {
 
 import chalk from 'chalk';
 
-import { onNode as importStatements } from './rules/importStatements';
-import { onNode as importStatementsWithoutDist } from './rules/importStatementsWithoutDist';
-import { Context } from './aux';
+import { Context, OnNodeFn, ParseProjectParamsObject } from './aux';
 
 const glob = promisify(_glob);
 
-const args = Array.from(process.argv);
-args.shift();
-args.shift();
+export function parseProject(opts: ParseProjectParamsObject): Promise<Context> {
+    return glob(
+        '**/*.ts',
+        {
+            cwd: opts.cwd,
+            ignore: opts.ignore
+        }).then(
+            (matches) => {
+                const fullPaths = matches.map(s => `${opts.cwd}/${s}`);
+                processTypescriptFiles(fullPaths, opts.context, opts.processors);
+                return opts.context;
+            }
+    );
+}
 
-const cwd = args[0] || '.';
-console.log('cwd', cwd);
-
-const context: Context = {
-    uniqueErrors: new Set<string>(),
-    errorCount: 0
-};
-
-glob(
-    '**/*.ts',
-    {
-        cwd,
-        ignore: [
-            'node_modules/**',
-            '**/*.d.ts'
-        ]
-    }).then(
-        (matches) => {
-            const fullPaths = matches.map(s => `${cwd}/${s}`);
-            processTypescriptFiles(fullPaths);
-            console.log(context);
-        }
-);
-
-function processTypescriptFiles(files: string[]) {
+function processTypescriptFiles(files: string[], context: Context, processors: OnNodeFn[] ) {
     const program: Program = createProgram(files, {});
-
     for (const file of files) {
         // console.log(chalk.bgBlueBright( chalk.black(`\n ${file} \n`) ));
-
         const sourceFile = program.getSourceFile(file);
-
-        // sourceFile && forEachChild(sourceFile, (node: Node) => importStatements(node, file, context));
-        sourceFile && forEachChild(sourceFile, (node: Node) => importStatementsWithoutDist(node, file, context));
+        if (sourceFile) {
+            for (const processor of processors) {
+                forEachChild(sourceFile, (node: Node) =>
+                    processor(node, file, context));
+            }
+        }
     }
 }
