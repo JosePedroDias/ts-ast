@@ -12,7 +12,8 @@ export function getDefaultParseProjectParams(): ParseProjectParamsObject {
             '**/*.d.ts'
         ],
         processors: [
-            importStatementsWithoutDist
+            // importStatements,
+            importStatementsWithoutDist,
         ],
         context: getContext()
     }
